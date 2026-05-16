@@ -1,0 +1,619 @@
+
+template<typename D>
+BSTREE<D>::BSTREE(bool l) : LC(l?3:2) {}
+
+template<typename D>
+BSTREE<D>::BSTREE(const BSTREE<D>& other) :BSTREE<D>(other.LC==3?true:false){
+    M=other.M;
+    if(!other.ROOT) return; 
+    QUEUE<BSTnode<D>*> Q; 
+    BSTnode<D>* tmp;
+    Q.enqueue(other.ROOT);
+    while(!Q.empty()){
+        tmp=Q.dequeue();
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        insert(tmp->K);
+    }
+}
+
+template<typename D>
+BSTREE<D>::BSTREE(BSTREE<D>&& other) noexcept :ROOT(other.ROOT), elem(other.elem), LC(other.LC), M(other.M){
+    other.ROOT=nullptr;
+    other.elem=0;
+}
+
+template<typename D>
+BSTREE<D>& BSTREE<D>::operator=(const BSTREE<D>& other){
+    if(this == &other) return *this;
+
+    freelink(ROOT); if(ROOT){ delete[] ROOT->LINK; delete ROOT; ROOT=nullptr; } 
+    elem=0; LC=other.LC;
+    if(!other.ROOT) return *this;
+    
+    QUEUE<BSTnode<D>*> Q; 
+    BSTnode<D>* tmp;
+    Q.enqueue(other.ROOT);
+    while(!Q.empty()){
+        tmp=Q.dequeue();
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        insert(tmp->K);
+    }
+    return *this;
+}
+
+template<typename D>
+BSTREE<D>& BSTREE<D>::operator=(BSTREE<D>&& other) noexcept{
+    if(this == &other) return *this;
+
+    freelink(ROOT); if(ROOT){ delete[] ROOT->LINK; delete ROOT; ROOT=nullptr; } 
+    elem=0; LC=other.LC;
+    if(!other.ROOT) return *this;
+
+    ROOT=other.ROOT; elem=other.elem;
+    other.ROOT=nullptr; other.elem=0;
+    return *this;
+}
+
+template<typename D>
+BSTREE<D>::~BSTREE(){ 
+    if(ROOT){ freelink(ROOT); delete[] ROOT->LINK; delete ROOT; ROOT=nullptr; } 
+}
+
+template<typename D>
+unsigned long int BSTREE<D>::addlink(BSTnode<D>*& root, const BSTnode<D>*& other){
+    if(!root || !other) return 0;
+    QUEUE<const BSTnode<D>*> Q; 
+    BSTnode<D>* ptr, *tmp, *key; D item; unsigned long int count=0;
+    Q.enqueue(other);
+    while(!Q.empty()){
+        key=Q.dequeue();
+            if(key->LINK[L]) Q.enqueue(key->LINK[L]);
+            if(key->LINK[R]) Q.enqueue(key->LINK[R]); 
+        ptr=root; item=key->K;
+        while(ptr){
+            tmp=ptr;
+            if(item<ptr->K) ptr=ptr->LINK[L];
+            else if(item>ptr->K) ptr=ptr->LINK[R];
+            else{ tmp=nullptr; break; }
+        }
+        if(!tmp) continue;
+        if(item<tmp->K) tmp->LINK[L]=create(item,tmp); 
+        else tmp->LINK[R]=create(item,tmp); 
+        elem++; count++;
+    }
+    return count;
+}
+
+template<typename D>
+bool BSTREE<D>::add(const BSTREE<D>& root){
+    if(this == &root) return false;
+    if(!root.ROOT) return false;
+    QUEUE<BSTnode<D>*> Q; 
+    BSTnode<D>* tmp;
+    Q.enqueue(root.ROOT);
+    while(!Q.empty()){
+        tmp=Q.dequeue();
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        insert(tmp->K);
+    }
+    return true;
+}
+
+template<typename D>
+void BSTREE<D>::print_Key_L_C_R(const BSTnode<D>* tmp) const{
+    if(tmp->LINK[L]) std::cout<<tmp->LINK[L]->K;
+    else std::cout<<"NULL"; 
+    std::cout<<"<-["<<tmp->K<<"]->";
+    if(tmp->LINK[R]) std::cout<<tmp->LINK[R]->K;
+    else std::cout<<"NULL"; 
+}
+
+template<typename D>
+void BSTREE<D>::viewBFS(bool order) const{
+    if(!ROOT){ std::cout<<"Tree is empty"; return; }
+    QUEUE<BSTnode<D>*> Q; 
+    BSTnode<D>* tmp;
+    Q.enqueue(ROOT);
+    while(!Q.empty()){
+        tmp=Q.dequeue();
+        if(order){
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+        }else{
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        }
+        print_Key_L_C_R(tmp); std::cout<<"\n";
+    }
+}
+
+template<typename D>
+void BSTREE<D>::viewDFS(bool order) const{
+    if(!ROOT){ std::cout<<"Tree is empty"; return; }
+    STACK<BSTnode<D>*> S; 
+    BSTnode<D>* tmp;
+    S.push(ROOT);
+    while(!S.empty()){
+        tmp=S.pop();
+        if(order){
+            if(tmp->LINK[R]) S.push(tmp->LINK[R]);
+            if(tmp->LINK[L]) S.push(tmp->LINK[L]);
+        }else{
+            if(tmp->LINK[L]) S.push(tmp->LINK[L]);
+            if(tmp->LINK[R]) S.push(tmp->LINK[R]);
+        }
+        print_Key_L_C_R(tmp); std::cout<<"\n";
+    }
+}
+
+template<typename D>
+void BSTREE<D>::viewIN(const BSTnode<D>* root) const{
+    if(!root) return;
+
+    viewIN(root->LINK[L]);  print_Key_L_C_R(root); std::cout<<"\n";  viewIN(root->LINK[R]);
+}
+
+template<typename D>
+void BSTREE<D>::viewPRE(const BSTnode<D>* root) const{
+    if(!root) return;
+
+    print_Key_L_C_R(root); std::cout<<"\n";  viewPRE(root->LINK[L]);  viewPRE(root->LINK[R]);
+}
+
+template<typename D>
+void BSTREE<D>::viewPOST(const BSTnode<D>* root) const{
+    if(!root) return;
+
+    viewPOST(root->LINK[L]);  viewPOST(root->LINK[R]);  print_Key_L_C_R(root); std::cout<<"\n";
+}
+
+template<typename D>
+void BSTREE<D>::view(MODE mode) const{
+    if(!ROOT){ std::cout << "NULL"; return; }
+    if(mode == MODE::DEF) mode=M;
+    switch(mode){
+        case MODE::DFS: viewDFS(); break;
+        case MODE::BFS: viewBFS(); break;
+
+        case MODE::IN:
+            if(ROOT) viewIN(ROOT);
+            break;
+        case MODE::PRE:
+            if(ROOT) viewPRE(ROOT);
+            break;
+        case MODE::POST:
+            if(ROOT) viewPOST(ROOT);
+            break;
+
+        case MODE::DFS_LR: viewDFS(true); break;
+        case MODE::BFS_RL: viewBFS(true); break;
+
+        default:
+            throw std::runtime_error("Invalid traversal mode");
+    }
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::pointerIN(BSTnode<D>* root, const unsigned long int index, 
+                                                         unsigned long int& count) const{
+    if(!root) return nullptr;
+
+    BSTnode<D>* left=pointerIN(root->LINK[L], index, count);  if(left) return left;
+    if(count == index) return root;  count++;
+    return pointerIN(root->LINK[R], index, count);
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::pointerPRE(BSTnode<D>* root, const unsigned long int index, 
+                                                          unsigned long int& count) const{
+    if(!root) return nullptr;
+
+    if(count == index) return root;  count++;
+    BSTnode<D>* left = pointerPRE(root->LINK[L], index, count);  if(left) return left;
+    return pointerPRE(root->LINK[R], index, count);
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::pointerPOST(BSTnode<D>* root, const unsigned long int index, 
+                                                           unsigned long int& count) const{
+    if(!root) return nullptr;
+
+    BSTnode<D>* left = pointerPOST(root->LINK[L], index, count);  if(left) return left;
+    BSTnode<D>* right = pointerPOST(root->LINK[R], index, count);  if(right) return right;
+    if(count == index) return root;  count++;  return nullptr;
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::pointerBFS(const unsigned long int index, bool order) const{
+    if(!ROOT) return nullptr;
+    unsigned long int count=0;
+    QUEUE<BSTnode<D>*> Q; Q.enqueue(ROOT);
+    BSTnode<D>* tmp;
+    while(!Q.empty()){
+        tmp=Q.dequeue();
+        if(index == count) return tmp;   count++;
+        if(order){
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+        }else{
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        }
+    }
+    return nullptr;
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::pointerDFS(const unsigned long int index, bool order) const{
+    if(!ROOT) return nullptr; 
+    unsigned long int count=0;
+    STACK<BSTnode<D>*> S; S.push(ROOT);
+    BSTnode<D>* tmp;
+    while(!S.empty()){
+        tmp=S.pop();
+        if(index == count) return tmp;   count++;
+        if(order){
+            if(tmp->LINK[R]) S.push(tmp->LINK[R]);
+            if(tmp->LINK[L]) S.push(tmp->LINK[L]);
+        }else{
+            if(tmp->LINK[L]) S.push(tmp->LINK[L]);
+            if(tmp->LINK[R]) S.push(tmp->LINK[R]);
+        }
+    }
+    return nullptr;
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::pointer(long int index, MODE mode) const{
+    index = index<0 ? elem+index : index;
+    if(index>=elem || index<0) return nullptr;
+
+    unsigned long int count = 0;  if(mode == MODE::DEF) mode=M;
+    switch(mode){
+        case MODE::DFS: return pointerDFS(index);
+        case MODE::BFS: return pointerBFS(index);
+
+        case MODE::IN:   return pointerIN(ROOT,index,count);
+        case MODE::PRE:  return pointerPRE(ROOT,index,count);
+        case MODE::POST: return pointerPOST(ROOT,index,count);
+
+        case MODE::DFS_LR: return pointerDFS(index,true);
+        case MODE::BFS_RL: return pointerBFS(index,true);
+
+        default:
+            throw std::runtime_error("Invalid traversal mode");
+    }
+}
+
+template<typename D>  
+D& BSTREE<D>::operator[](const long int index){
+    if(!ROOT) throw std::runtime_error("Tree is empty"); 
+
+    BSTnode<D>* ptr=pointer(index);
+    if(!ptr) throw std::out_of_range("Index out of bounds"); 
+    return ptr->K;
+}
+
+template<typename D>  
+const D& BSTREE<D>::operator[](const long int index) const{
+    if(!ROOT) throw std::runtime_error("Tree is empty"); 
+
+    const BSTnode<D>* ptr=pointer(index);
+    if(!ptr) throw std::out_of_range("Index out of bounds"); 
+    return ptr->K;
+}
+
+template<typename D>  
+bool BSTREE<D>::deleting(BSTnode<D>*& del, BSTnode<D>* tmp){
+    BSTnode<D>* ptr=del;  
+    if(ptr->LINK[L]){
+        tmp=ptr; ptr=ptr->LINK[L];
+        while(ptr->LINK[R]){ tmp=ptr; ptr=ptr->LINK[R]; }
+        del->K=ptr->K;
+        return deleting(ptr,tmp);
+    }
+    if(ptr->LINK[R]){
+        tmp=ptr; ptr=ptr->LINK[R];  
+        while(ptr->LINK[L]){ tmp=ptr; ptr=ptr->LINK[L]; }
+        del->K=ptr->K; 
+        return deleting(ptr,tmp);
+    }
+    if(tmp->LINK[L] == ptr){ 
+        delete[] ptr->LINK; delete ptr; tmp->LINK[L]=nullptr; elem--; 
+    }else{ 
+        delete[] ptr->LINK; delete ptr; tmp->LINK[R]=nullptr; elem--; 
+    }
+    return true;
+}
+
+template<typename D>
+bool BSTREE<D>::remove(D item){
+    BSTnode<D>* ptr, *tmp;
+    tmp=ptr=ROOT;
+    while(ptr){
+        if(ptr->K!=item) tmp=ptr;
+        if(item<ptr->K) ptr=ptr->LINK[L];
+        else if(item>ptr->K) ptr=ptr->LINK[R];
+        else break;
+    } 
+    if(!ptr) return false;
+    if(elem == 1){
+        delete[] ROOT->LINK; delete ROOT; ROOT=nullptr; elem--; return true; 
+    }
+    if(ptr->LINK[L]==nullptr && ptr->LINK[R]==nullptr){
+        if(tmp->LINK[L] == ptr){ 
+            tmp->LINK[L]=nullptr; delete[] ptr->LINK; delete ptr; elem--; 
+        }else{ 
+            tmp->LINK[R]=nullptr; delete[] ptr->LINK; delete ptr; elem--; 
+        }
+        return true;
+    }
+    return deleting(ptr,tmp);
+}
+
+template<typename D>
+bool BSTREE<D>::freelink(BSTnode<D>*& root){
+    if(!root) return false;
+    QUEUE<BSTnode<D>*> Q; 
+    BSTnode<D>* tmp;
+        if(root->LINK[L]) Q.enqueue(root->LINK[L]);
+        if(root->LINK[R]) Q.enqueue(root->LINK[R]);
+    while(!Q.empty()){
+        tmp=Q.dequeue();
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        delete[] tmp->LINK;
+        delete tmp;
+    }
+    root->LINK[L]=nullptr; root->LINK[R]=nullptr; 
+    return true;
+}
+
+template<typename D>
+bool BSTREE<D>::search(D item){
+    BSTnode<D>* ptr=ROOT;
+    while(ptr){ 
+        if(item<ptr->K) ptr=ptr->LINK[L];
+        else if(item>ptr->K) ptr=ptr->LINK[R];
+        else return true;
+    } 
+    return false;
+}
+
+template<typename D>
+BSTnode<D>* BSTREE<D>::create(D item, BSTnode<D>* parent){
+    BSTnode<D>* ptr=new BSTnode<D>;
+    ptr->K=item;
+    if(LC==3) ptr->LINK=new BSTnode<D>*[3]{nullptr,nullptr,parent}; 
+    else ptr->LINK=new BSTnode<D>*[2]{nullptr,nullptr}; 
+    return ptr;
+}
+
+template<typename D>
+bool BSTREE<D>::insert(D item){
+    if(!ROOT){
+        ROOT=create(item); elem++; return true;
+    }
+    BSTnode<D>* ptr, *tmp; 
+    ptr=ROOT;
+    while(ptr){
+        tmp=ptr;
+        if(item<ptr->K) ptr=ptr->LINK[L];
+        else if(item>ptr->K) ptr=ptr->LINK[R];
+        else return false;
+    }
+    if(item<tmp->K) tmp->LINK[L]=create(item,tmp); 
+    else tmp->LINK[R]=create(item,tmp); elem++; 
+    return true;
+}
+
+template<typename D>
+void BSTREE<D>::insert_index(D arr[], size_t LOW, size_t HIGH){
+    if(LOW == HIGH){ insert(arr[LOW]); return; }
+    else if((1+LOW) == HIGH){ 
+        insert(arr[LOW]); insert(arr[HIGH]); return;
+    }else{
+        size_t MID=(LOW+HIGH)/2;
+        insert(arr[MID]);
+        insert_index(arr,LOW,(MID-1));
+        insert_index(arr,(1+MID),HIGH);
+    }
+}
+
+template<typename D>
+void BSTREE<D>::insert_array(D arr[], size_t SIZE){
+    if(ROOT) insert_index(arr,0,SIZE-1);
+    else
+        for(size_t i=0; i<SIZE; i++) insert(arr[i]);
+}
+
+template<typename D>
+BSTiterator<D> BSTREE<D>::begin() noexcept{
+    BSTiterator<D> it(M,ROOT);  return ++it;
+}
+
+template<typename D>
+BSTiterator<D> BSTREE<D>::end() noexcept{ return BSTiterator<D>(M,nullptr); }
+
+template<typename D>
+BSTiterator<D> BSTREE<D>::begin() const noexcept{
+        BSTiterator<D> it(M,ROOT); return ++it;
+}
+
+template<typename D>
+BSTiterator<D> BSTREE<D>::end() const noexcept{ return BSTiterator<D>(M,nullptr); }
+
+
+
+//----------------------------------------------------------------------------------------- iterator
+
+template<typename D>
+BSTiterator<D>::BSTiterator(MODE mode, BSTnode<D>* p) : ptr(nullptr), last(nullptr), ROOT(p), M(mode) {
+    if(!ROOT) return;
+
+    switch(M){
+        case MODE::BFS:
+        case MODE::BFS_RL:
+            Q.enqueue(ROOT); break;
+
+        case MODE::DFS:
+        case MODE::DFS_LR:
+
+        case MODE::PRE:
+            S.push(ROOT); break;
+
+        case MODE::IN:
+        case MODE::POST:
+        {
+            BSTnode<D>* temp = ROOT;
+            while(temp){
+                S.push(temp);
+                temp = temp->LINK[L];
+            } break;
+        }
+
+        default: break;
+    }
+}
+    
+template <typename D>
+BSTnode<D>* BSTiterator<D>::incrementBFS(){
+    if(Q.empty()) return nullptr;
+    BSTnode<D>* temp = Q.dequeue();
+
+    if(M == MODE::BFS){
+        if(temp->LINK[L]) Q.enqueue(temp->LINK[L]);
+        if(temp->LINK[R]) Q.enqueue(temp->LINK[R]);
+    }else{
+        if(temp->LINK[R]) Q.enqueue(temp->LINK[R]);
+        if(temp->LINK[L]) Q.enqueue(temp->LINK[L]);
+    }
+    return temp;
+}
+
+template<typename D>
+BSTnode<D>* BSTiterator<D>::incrementDFS(){
+    if(S.empty()) return nullptr;
+    BSTnode<D>* temp = S.pop();
+
+    if(M == MODE::DFS){
+        if(temp->LINK[L]) S.push(temp->LINK[L]);
+        if(temp->LINK[R]) S.push(temp->LINK[R]);
+    }else{
+        if(temp->LINK[R]) S.push(temp->LINK[R]);
+        if(temp->LINK[L]) S.push(temp->LINK[L]);
+    }
+    return temp;
+}
+
+template<typename D>
+BSTnode<D>* BSTiterator<D>::incrementIN(){
+    if(S.empty()) return nullptr;
+    BSTnode<D>* node = S.pop();
+
+    BSTnode<D>* tmp = node->LINK[R];
+    while(tmp){
+        S.push(tmp);
+        tmp = tmp->LINK[L];
+    }
+    return node;
+}
+
+template<typename D>
+BSTnode<D>* BSTiterator<D>::incrementPRE(){
+    if(S.empty()) return nullptr;
+    BSTnode<D>* node = S.pop();
+
+    if(node->LINK[R]) S.push(node->LINK[R]);
+    if(node->LINK[L]) S.push(node->LINK[L]);
+    return node;
+}
+
+template<typename D>
+BSTnode<D>* BSTiterator<D>::incrementPOST(){
+    while(!S.empty()){
+        BSTnode<D>* peek = S.tos();
+        BSTnode<D>* right = peek->LINK[R];
+
+        if(right && last != right){
+            BSTnode<D>* tmp = right;
+            while(tmp){
+                S.push(tmp);
+                tmp = tmp->LINK[L];
+            }
+        }else{
+            S.pop();
+            last = peek;
+            return peek;
+        }
+    }
+    return nullptr;
+}
+
+template<typename D>
+BSTnode<D>* BSTiterator<D>::increment(){
+    switch(M){
+        case MODE::BFS: 
+        case MODE::BFS_RL: 
+            return incrementBFS();
+
+        case MODE::DFS: 
+        case MODE::DFS_LR: 
+            return incrementDFS();
+
+        case MODE::IN:   return incrementIN();
+        case MODE::PRE:  return incrementPRE();
+        case MODE::POST: return incrementPOST();
+
+        default: return nullptr;
+    }
+}
+
+template<typename D>
+D& BSTiterator<D>::operator*(){
+    if(!ptr) throw std::runtime_error("Null iterator");
+    return ptr->K;
+}
+
+template<typename D>
+const D& BSTiterator<D>::operator*() const{
+    if(!ptr) throw std::runtime_error("Null iterator");
+    return ptr->K;
+}
+
+template<typename D>
+BSTiterator<D>& BSTiterator<D>::operator++() noexcept{
+    ptr = increment();
+    return *this;
+}
+
+template<typename D>
+BSTiterator<D> BSTiterator<D>::operator++(int) noexcept{
+    BSTiterator<D> temp = *this; 
+    ptr = increment();
+    return temp;
+}
+
+template<typename D>
+bool BSTiterator<D>::operator!=(const BSTiterator<D>& other) const noexcept{ return ptr != other.ptr; }
+
+template<typename D>
+bool BSTiterator<D>::operator==(const BSTiterator<D>& other) const noexcept{ return ptr == other.ptr; }
+
+template<typename D>
+D* BSTiterator<D>::operator->(){ 
+    if(!ptr) throw std::runtime_error("Null iterator");
+    return &(ptr->K); 
+}
+
+template<typename D>
+const D* BSTiterator<D>::operator->() const{ 
+    if(!ptr) throw std::runtime_error("Null iterator");
+    return &(ptr->K); 
+}
+
+template<typename D>
+std::ostream& operator<<(std::ostream& out, const BSTREE<D>& BST){  BST.view(); return out;  }
