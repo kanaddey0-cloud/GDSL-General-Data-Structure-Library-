@@ -1,62 +1,76 @@
-# ifndef SINGLY_LINKED_LIST
-# define SINGLY_LINKED_LIST
+#ifndef SINGLY_LINKED_LIST
+#define SINGLY_LINKED_LIST
 
 #include <iostream>
 #include <stdexcept>
 
-template<typename D>
-struct node{ D K; node<D> *P; }; 
 
 template<typename D>
-class iterator { 
-    node<D>* ptr; 
+struct LISTnode{ D K; LISTnode<D> *P; }; 
+
+
+template<typename D>
+class LISTiterator { 
+    LISTnode<D>* ptr; 
 public:
-    iterator(node<D>* p = nullptr);
+    LISTiterator(LISTnode<D>* p = nullptr);
+	
     D& operator*();
     const D& operator*() const;
-    iterator& operator++() noexcept;
-    iterator operator++(int) noexcept;
-    bool operator!=(const iterator& other) const noexcept;
-    bool operator==(const iterator& other) const noexcept;
+	
+    LISTiterator& operator++() noexcept;
+    LISTiterator operator++(int) noexcept;
+	
+    bool operator!=(const LISTiterator& other) const noexcept;
+    bool operator==(const LISTiterator& other) const noexcept;
+	
     D* operator->();
     const D* operator->() const;
 };
 
+
 template<typename D>
 class LIST{
 protected:
-    long int elem; 
-    node<D>* H, *T;
-    node<D>* pointer(long int index) const;
-    void rotate(node<D>*& head, node<D>*& tail);
-    long int clear(node<D>*& p);
-    long int clearupto(node<D>*& head, node<D>*& tail);
+    size_t elem; 
+    LISTnode<D>* H, *T;
+	
+    LISTnode<D>* pointer(std::ptrdiff_t index) const;
+    void rotate(LISTnode<D>*& head, LISTnode<D>*& tail);
+    size_t clear(LISTnode<D>*& p);
+    size_t clearupto(LISTnode<D>*& head, LISTnode<D>*& tail);
+
 public:
     LIST();
     LIST(const LIST<D>& other);
     LIST(LIST<D>&& other) noexcept;
-    D& operator[](const long int index);
-    const D& operator[](const long int index) const;
+    ~LIST();
+
+    D& operator[](const std::ptrdiff_t index);
+    const D& operator[](const std::ptrdiff_t index) const;
     LIST<D>& operator=(const LIST<D>& other);
     LIST<D>& operator=(LIST<D>&& other) noexcept;
-    long int size() const { return elem; }
-    bool insert(D val, long int index=-1);
-    long int drop(D val);
-    D remove(long int index);
-    long int update(D prev, D curr, bool in=false);
-    D modify(D curr, long int index);
+
+    size_t size() const { return elem; }
+    bool insert(D val, std::ptrdiff_t index = -1);
+    size_t drop(D val);
+    D remove(std::ptrdiff_t index);
+    size_t update(D prev, D curr, bool in = false);
+    D modify(D curr, std::ptrdiff_t index);
     bool add(const LIST<D>& next);
-    const D& value(long int index) const;
-    long int index(D value) const;
+    const D& value(std::ptrdiff_t index) const;
+    size_t index(D value) const;
     void reverse();
-    void view(bool v=true) const;
-    iterator<D> begin() noexcept;
-    iterator<D> begin() const noexcept;
-    iterator<D> end() noexcept;
-    iterator<D> end() const noexcept;
-    ~LIST();
+    void view(bool v = false) const;
+
+    LISTiterator<D> begin() noexcept;
+    LISTiterator<D> end() noexcept;
+    LISTiterator<D> begin() const noexcept;
+    LISTiterator<D> end() const noexcept;
 };
 
-#include "src/Linear/List/SinglyList.tpp"
+
+#include "GDSL/src/Linear/List/SinglyList.tpp"
+// #include "src/Linear/List/SinglyList.tpp"
 
 # endif

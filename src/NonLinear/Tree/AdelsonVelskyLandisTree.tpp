@@ -1,4 +1,5 @@
 
+
 template<typename D>
 AVLTREE<D>::AVLTREE(const AVLTREE<D>& other) :AVLTREE<D>(){
     M=other.M;
@@ -101,11 +102,12 @@ bool AVLTREE<D>::add(const AVLTREE<D>& root){
 
 template<typename D>
 void AVLTREE<D>::print_Key_L_C_R(const AVLnode<D>* tmp) const{
-    if(tmp->LINK[L]) std::cout<<tmp->LINK[L]->K;
-    else std::cout<<"NULL"; 
-    std::cout<<"<-["<<tmp->K<<"]->";
-    if(tmp->LINK[R]) std::cout<<tmp->LINK[R]->K;
-    else std::cout<<"NULL"; 
+    std::cout<<"H->"<<tmp->H<<"\t";
+    if(tmp->LINK[L]) std::cout<<tmp->LINK[L]->K<<"<-";
+    else std::cout<<"NULL<-"; 
+    std::cout<<"["<<tmp->K<<"]";
+    if(tmp->LINK[R]) std::cout<<"->"<<tmp->LINK[R]->K;
+    else std::cout<<"->NULL"; 
 }
 
 template<typename D>
@@ -286,15 +288,6 @@ AVLnode<D>* AVLTREE<D>::pointer(long int index, MODE mode) const{
 }
 
 template<typename D>  
-D& AVLTREE<D>::operator[](const long int index){
-    if(!ROOT) throw std::runtime_error("Tree is empty"); 
-
-    AVLnode<D>* ptr=pointer(index);
-    if(!ptr) throw std::out_of_range("Index out of bounds"); 
-    return ptr->K;
-}
-
-template<typename D>  
 const D& AVLTREE<D>::operator[](const long int index) const{
     if(!ROOT) throw std::runtime_error("Tree is empty"); 
 
@@ -351,8 +344,7 @@ template<typename D>
 char AVLTREE<D>::subH(AVLnode<D>* sub) const noexcept{ if(!sub) return 0;   return 1+ sub->H; }
 
 template<typename D>
-char AVLTREE<D>::balanceH(AVLnode<D>* subL, AVLnode<D>* subR) const noexcept{
-    char leftH = subH(subL), rightH = subH(subR);
+char AVLTREE<D>::balanceH(char leftH, char rightH) const noexcept{
     char balance = leftH-rightH;
     if(balance<2 && balance>-2) return (leftH > rightH ? leftH : rightH);
     return -1;
@@ -360,48 +352,57 @@ char AVLTREE<D>::balanceH(AVLnode<D>* subL, AVLnode<D>* subR) const noexcept{
 
 template<typename D>
 AVLnode<D>* AVLTREE<D>::balance(AVLnode<D>* AVL){ 
-    if(subH(AVL->LINK[L]) > subH(AVL->LINK[R])){  // if(AVL->H > 0)
-        node[2]=AVL; link[3]=AVL->LINK[R]; 
+        
+    if(subH(AVL->LINK[L]) > subH(AVL->LINK[R])){ 
         AVLnode<D>* left=AVL->LINK[L];
-        if(subH(left->LINK[L]) < subH(left->LINK[R])){  // if(left->H > 0)
-            node[0]=left; link[0]=left->LINK[L];
-            node[1]=left->LINK[R];
-            link[1]=node[1]->LINK[L]; link[2]=node[1]->LINK[R];  //1
-        }
-        else if(subH(left->LINK[L]) >= subH(left->LINK[R])){  // else if(left->H < 0)
-            node[1]=left; link[2]=left->LINK[R];
-            node[0]=left->LINK[L];
-            link[0]=node[0]->LINK[L]; link[1]=node[0]->LINK[R];  //2
+        AVLnode<D>* leftright=left->LINK[R];
+
+        if(subH(left->LINK[L]) < subH(leftright)){ 
+            left->LINK[R]=leftright->LINK[L];  AVL->LINK[L]= leftright->LINK[R];
+            leftright->LINK[L]=left;       leftright->LINK[R]=AVL;
+            
+            left->H=balanceH(subH(left->LINK[L]),subH(leftright));  
+            AVL->H=balanceH(subH(AVL->LINK[L]),subH(AVL->LINK[R]));
+            AVL=leftright; 
+        } else { 
+            AVL->LINK[L]=leftright;  left->LINK[R]=AVL;
+            
+            left->LINK[L]->H=balanceH(subH(left->LINK[L]->LINK[L]), subH(left->LINK[L]->LINK[R]));  
+            AVL->H=balanceH(subH(AVL->LINK[L]), subH(AVL->LINK[R]));
+            AVL=left; 
         }
     }
-    else if(subH(AVL->LINK[L]) < subH(AVL->LINK[R])){  // else if(AVL->H < 0)
-        node[0]=AVL; link[0]=AVL->LINK[L];  
+    else { 
         AVLnode<D>* right=AVL->LINK[R];
-        if(subH(right->LINK[L]) < subH(right->LINK[R])){  // if(right->H > 0)
-            node[1]=right; link[1]=right->LINK[L];  
-            node[2]=right->LINK[R];
-            link[2]=node[2]->LINK[L]; link[3]=node[2]->LINK[R];  //3
-        }
-        else if(subH(right->LINK[L]) >= subH(right->LINK[R])){  // else if(right->H < 0)
-            node[2]=right; link[3]=right->LINK[R];
-            node[1]=right->LINK[L];
-            link[1]=node[1]->LINK[L]; link[2]=node[1]->LINK[R];  //4
+        AVLnode<D>* rightleft=right->LINK[L];
+
+        if(subH(rightleft) < subH(right->LINK[R])){ 
+            AVL->LINK[R]=rightleft;
+            right->LINK[L]=AVL;
+
+            AVL->H=balanceH(subH(AVL->LINK[L]), subH(AVL->LINK[R]));  
+            right->LINK[R]->H=balanceH(subH(right->LINK[R]->LINK[L]), subH(right->LINK[R]->LINK[R]));
+            AVL=right; 
+        } else { 
+            AVL->LINK[R]=rightleft->LINK[L];  right->LINK[L]=rightleft->LINK[R];
+            rightleft->LINK[L]=AVL;           rightleft->LINK[R]=right;
+
+            AVL->H=balanceH(subH(AVL->LINK[L]), subH(AVL->LINK[R]));  
+            right->H=balanceH(subH(rightleft), subH(right->LINK[R]));
+            AVL=rightleft; 
         } 
     }
-    node[1]->LINK[L]=node[0];   node[1]->LINK[R]=node[2];
 
-    node[0]->LINK[L]=link[0];   node[2]->LINK[L]=link[2];
-    node[0]->LINK[R]=link[1];   node[2]->LINK[R]=link[3];
+    if(AVL->LINK[L]->H == -1) AVL->LINK[L] = balance(AVL->LINK[L]);
+    if(AVL->LINK[R]->H == -1) AVL->LINK[R] = balance(AVL->LINK[R]);
 
-    node[0]->H=balanceH(node[0]->LINK[L],node[0]->LINK[R]);
-    node[2]->H=balanceH(node[2]->LINK[L],node[2]->LINK[R]);
-    node[1]->H=balanceH(node[1]->LINK[L],node[1]->LINK[R]);
-
-    return node[1];
+    AVL->H=balanceH(subH(AVL->LINK[L]), subH(AVL->LINK[R]));
+    
+    return AVL;
 }
 
 template<typename D> 
-D AVLTREE<D>::deleting(AVLnode<D>* point, bool f1, bool f2){  D tmp;
+D AVLTREE<D>::deleting(AVLnode<D>* point, bool f1, bool f2){  D tmp; bool f=false;
     if(f1){
         if(f2){
             if(point->LINK[R]){
@@ -422,17 +423,19 @@ D AVLTREE<D>::deleting(AVLnode<D>* point, bool f1, bool f2){  D tmp;
                 }
             }else return deleting(point,false);
         }
-        point->H=balanceH(point->LINK[L],point->LINK[R]);
+        point->H=balanceH(subH(point->LINK[L]), subH(point->LINK[R]));
         if(-1 == point->H) AVL=balance(point); 
         return tmp;
 
     }else{
         if(!point->LINK[L] && !point->LINK[R]){ f0=true; return point->K; }
         else if(point->LINK[L] && !point->LINK[R]){
+            tmp=point->K; f=true;
             point->K=point->LINK[L]->K;
             delete point->LINK[L]; point->LINK[L]=nullptr; elem--;
         }
         else if(!point->LINK[L] && point->LINK[R]){
+            tmp=point->K; f=true;
             point->K=point->LINK[R]->K;
             delete point->LINK[R]; point->LINK[R]=nullptr; elem--;
         }
@@ -443,7 +446,7 @@ D AVLTREE<D>::deleting(AVLnode<D>* point, bool f1, bool f2){  D tmp;
                     if(f0){  
                         delete point->LINK[L]->LINK[R]; point->LINK[L]->LINK[R]=nullptr; f0=false; elem--;
                     }
-                    point->LINK[L]->H=balanceH(point->LINK[L]->LINK[L],point->LINK[L]->LINK[R]);
+                    point->LINK[L]->H=balanceH(subH(point->LINK[L]->LINK[L]), subH(point->LINK[L]->LINK[R]));
                     if(-1 == point->LINK[L]->H) 
                         point->LINK[L]=balance(point->LINK[L]);
                 }else{
@@ -458,7 +461,7 @@ D AVLTREE<D>::deleting(AVLnode<D>* point, bool f1, bool f2){  D tmp;
                     if(f0){  
                         delete point->LINK[R]->LINK[L]; point->LINK[R]->LINK[L]=nullptr; f0=false;  elem--;
                     }
-                    point->LINK[R]->H=balanceH(point->LINK[R]->LINK[L],point->LINK[R]->LINK[R]);
+                    point->LINK[R]->H=balanceH(subH(point->LINK[R]->LINK[L]), subH(point->LINK[R]->LINK[R]));
                     if(-1 == point->LINK[R]->H) 
                         point->LINK[R]=balance(point->LINK[R]);
                 }else{
@@ -469,18 +472,17 @@ D AVLTREE<D>::deleting(AVLnode<D>* point, bool f1, bool f2){  D tmp;
                 }
             }
         }
-        point->H=balanceH(point->LINK[L],point->LINK[R]);
+        point->H=balanceH(subH(point->LINK[L]), subH(point->LINK[R]));
         if(-1 == point->H) AVL=balance(point);
-        return point->K;
+        return f? tmp : point->K;
     }
 }
 
 template<typename D>
 bool AVLTREE<D>::remove_(D item, AVLnode<D>* root){
-    if(!root) std::cout<<root->K<<"\n";
     if(root->K > item){  
         if(root->LINK[L]){
-            if(remove_(item,root->LINK[L])){ delete root->LINK[L]; root->LINK[L]=nullptr; elem--;}
+            if(remove_(item,root->LINK[L])){ delete root->LINK[L]; root->LINK[L]=nullptr; elem--; }
             else if(AVL){
                 root->LINK[L]=AVL; AVL=nullptr;
             }
@@ -500,7 +502,7 @@ bool AVLTREE<D>::remove_(D item, AVLnode<D>* root){
     }
     
     if(f0){
-        root->H=balanceH(root->LINK[L],root->LINK[R]); 
+        root->H=balanceH(subH(root->LINK[L]), subH(root->LINK[R])); 
         if(-1 == root->H)
             AVL=balance(root); 
     }return false;  
@@ -521,6 +523,18 @@ bool AVLTREE<D>::remove(D item){
 }
 
 template<typename D>
+bool AVLTREE<D>::remove_index(long int index, MODE mode){
+    if(!ROOT) return false;
+    AVLnode<D>* tmp=pointer(index,mode);
+    if(!tmp) throw std::out_of_range("Index out of bounds"); 
+     
+    return remove(tmp->K);
+}
+
+template<typename D>
+void AVLTREE<D>::clear(){ freelink(ROOT); delete ROOT; ROOT=nullptr; }
+
+template<typename D>
 AVLnode<D>* AVLTREE<D>::create(D item){  elem++;
     AVLnode<D>* ptr=new AVLnode<D>;
 
@@ -535,10 +549,10 @@ bool AVLTREE<D>::insert_(D item, AVLnode<D>* root){
     if(root->K > item){
         if(!root->LINK[L]){
             root->LINK[L]=create(item); 
-            root->H=balanceH(root->LINK[L],root->LINK[R]); 
+            root->H=balanceH(subH(root->LINK[L]), subH(root->LINK[R])); 
             return true;
         }else{
-            if(insert_(item,root->LINK[L])) root->H=balanceH(root->LINK[L],root->LINK[R]);
+            if(insert_(item,root->LINK[L])) root->H=balanceH(subH(root->LINK[L]), subH(root->LINK[R]));
             else if(AVL){
                 if(root->K > AVL->K) root->LINK[L]=AVL;
                 else root->LINK[R]=AVL;
@@ -548,10 +562,10 @@ bool AVLTREE<D>::insert_(D item, AVLnode<D>* root){
     }else if(root->K < item){
         if(!root->LINK[R]){
             root->LINK[R]=create(item);
-            root->H=balanceH(root->LINK[L],root->LINK[R]);  
+            root->H=balanceH(subH(root->LINK[L]), subH(root->LINK[R]));  
             return true;
         }else{
-            if(insert_(item,root->LINK[R])) root->H=balanceH(root->LINK[L],root->LINK[R]);
+            if(insert_(item,root->LINK[R])) root->H=balanceH(subH(root->LINK[L]), subH(root->LINK[R]));
             else if(AVL){
                 if(root->K > AVL->K) root->LINK[L]=AVL;
                 else root->LINK[R]=AVL;

@@ -289,15 +289,6 @@ BSTnode<D>* BSTREE<D>::pointer(long int index, MODE mode) const{
 }
 
 template<typename D>  
-D& BSTREE<D>::operator[](const long int index){
-    if(!ROOT) throw std::runtime_error("Tree is empty"); 
-
-    BSTnode<D>* ptr=pointer(index);
-    if(!ptr) throw std::out_of_range("Index out of bounds"); 
-    return ptr->K;
-}
-
-template<typename D>  
 const D& BSTREE<D>::operator[](const long int index) const{
     if(!ROOT) throw std::runtime_error("Tree is empty"); 
 
@@ -353,6 +344,18 @@ bool BSTREE<D>::remove(D item){
     }
     return deleting(ptr,tmp);
 }
+
+template<typename D>
+bool BSTREE<D>::remove_index(long int index, MODE mode){
+    if(!ROOT) return false;
+    BSTnode<D>* tmp=pointer(index,mode);
+    if(!tmp) throw std::out_of_range("Index out of bounds"); 
+     
+    return remove(tmp->K);
+}
+
+template<typename D>
+void BSTREE<D>::clear(){ freelink(ROOT); delete ROOT; ROOT=nullptr; }
 
 template<typename D>
 bool BSTREE<D>::freelink(BSTnode<D>*& root){
@@ -411,15 +414,15 @@ bool BSTREE<D>::insert(D item){
 }
 
 template<typename D>
-void BSTREE<D>::insert_index(D arr[], size_t LOW, size_t HIGH){
+void BSTREE<D>::insert_array_(D arr[], size_t LOW, size_t HIGH){
     if(LOW == HIGH){ insert(arr[LOW]); return; }
     else if((1+LOW) == HIGH){ 
         insert(arr[LOW]); insert(arr[HIGH]); return;
     }else{
         size_t MID=(LOW+HIGH)/2;
         insert(arr[MID]);
-        insert_index(arr,LOW,(MID-1));
-        insert_index(arr,(1+MID),HIGH);
+        insert_array_(arr,LOW,(MID-1));
+        insert_array_(arr,(1+MID),HIGH);
     }
 }
 
