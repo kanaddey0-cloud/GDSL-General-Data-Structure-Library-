@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <new>
 #include <gdsl_list>
-#include <gdsl_array>
 // #include "Linear/List/SinglyList.hpp"
 
 
@@ -34,13 +33,13 @@ union FIFO
         void view(bool v) const;
         void clear();
 
-    Continuous(const Continuous&) = default;
-    Continuous& operator=(const Continuous&) = default;
+        Continuous(const Continuous&);
+        Continuous& operator=(const Continuous&);
 
-    Continuous(Continuous&&) noexcept = default;
-    Continuous& operator=(Continuous&&) noexcept = default;
+        Continuous(Continuous&&) noexcept;
+        Continuous& operator=(Continuous&&) noexcept;
     } 
-	array;
+    array;
 
     struct Linked { friend class QUEUE<D>;
     protected:
@@ -57,13 +56,13 @@ union FIFO
         void view(bool v) const;
         void clear();
 
-    Linked(const Linked&) = default;
-    Linked& operator=(const Linked&) = default;
+        Linked(const Linked&) = default;
+        Linked& operator=(const Linked&) = default;
 
-    Linked(Linked&&) noexcept = default;
-    Linked& operator=(Linked&&) noexcept = default;
+        Linked(Linked&&) noexcept = default;
+        Linked& operator=(Linked&&) noexcept = default;
     } 
-	list;
+    list;
 
     FIFO() {}
     ~FIFO() {}

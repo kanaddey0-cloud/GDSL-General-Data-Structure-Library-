@@ -1,10 +1,9 @@
 
-
 template<typename D>
 AVLTREE<D>::AVLTREE(const AVLTREE<D>& other) :AVLTREE<D>(){
     M=other.M;
     if(!other.ROOT) return; 
-    QUEUE<AVLnode<D>*> Q; 
+    QUEUE<AVLnode<D>*> Q(other.elem); 
     AVLnode<D>* tmp;
     Q.enqueue(other.ROOT);
     while(!Q.empty()){
@@ -29,7 +28,7 @@ AVLTREE<D>& AVLTREE<D>::operator=(const AVLTREE<D>& other){
     elem=0; 
     if(!other.ROOT) return *this;
     
-    QUEUE<AVLnode<D>*> Q; 
+    QUEUE<AVLnode<D>*> Q(other.elem); 
     AVLnode<D>* tmp;
     Q.enqueue(other.ROOT);
     while(!Q.empty()){
@@ -60,10 +59,10 @@ AVLTREE<D>::~AVLTREE(){
 }
 
 template<typename D>
-unsigned long int AVLTREE<D>::addlink(AVLnode<D>*& root, const AVLnode<D>*& other){
+size_t AVLTREE<D>::addlink(AVLnode<D>*& root, const AVLnode<D>*& other){
     if(!root || !other) return 0;
     QUEUE<const AVLnode<D>*> Q; 
-    AVLnode<D>* ptr, *tmp, *key; D item; unsigned long int count=0;
+    AVLnode<D>* ptr, *tmp, *key; D item; size_t count=0;
     Q.enqueue(other);
     while(!Q.empty()){
         key=Q.dequeue();
@@ -88,7 +87,7 @@ template<typename D>
 bool AVLTREE<D>::add(const AVLTREE<D>& root){
     if(this == &root) return false;
     if(!root.ROOT) return false;
-    QUEUE<AVLnode<D>*> Q; 
+    QUEUE<AVLnode<D>*> Q(root.elem); 
     AVLnode<D>* tmp;
     Q.enqueue(root.ROOT);
     while(!Q.empty()){
@@ -111,19 +110,93 @@ void AVLTREE<D>::print_Key_L_C_R(const AVLnode<D>* tmp) const{
 }
 
 template<typename D>
+void AVLTREE<D>::viewPRE() const{
+    if(!ROOT){ 
+        std::cout<<"NULL"; return;
+    }
+    AVLnode<D> *curr=ROOT;
+    STACK<AVLnode<D>*> S(elem);
+    do{
+        while(curr){ print_Key_L_C_R(curr); std::cout<<"\n";
+
+            if(curr->LINK[R]) S.push(curr->LINK[R]);
+            curr=curr->LINK[L];
+        }
+        if(!S.empty()) curr=S.pop();
+    } while(curr);
+}
+
+template<typename D>
+void AVLTREE<D>::viewIN() const{
+    if(!ROOT){ 
+        std::cout<<"NULL"; return;
+    }
+    AVLnode<D>* curr = ROOT;
+    STACK<AVLnode<D>*> S(elem);
+    while(curr || !S.empty()){
+        while(curr){
+            S.push(curr); curr=curr->LINK[L];
+        }
+        curr=S.pop();
+        print_Key_L_C_R(curr); std::cout << "\n";
+        curr=curr->LINK[R];
+    }
+}
+
+template<typename D>
+void AVLTREE<D>::viewR_IN() const{
+    if(!ROOT){ 
+        std::cout<<"NULL"; return;
+    }
+    AVLnode<D>* curr = ROOT;
+    STACK<AVLnode<D>*> S(elem);
+    while(curr || !S.empty()){
+        while(curr){
+            S.push(curr); curr=curr->LINK[R];
+        }
+        curr=S.pop();
+        print_Key_L_C_R(curr); std::cout << "\n";
+        curr=curr->LINK[L];
+    }
+}
+
+template<typename D>
+void AVLTREE<D>::viewPOST() const{
+    if(!ROOT){ 
+        std::cout<<"NULL"; return; 
+    }
+    STACK<AVLnode<D>*> S(elem);
+    AVLnode<D>* curr=ROOT,*last=nullptr;
+    do{
+        while(curr){
+            S.push(curr); curr=curr->LINK[L];
+        }
+        curr=S.tos();
+        if(curr->LINK[R] && last!=curr->LINK[R])
+            curr=curr->LINK[R];
+        else{
+            print_Key_L_C_R(last=S.pop()); std::cout<<"\n";
+            curr=nullptr;
+        }
+    } while(!S.empty());
+}
+
+template<typename D>
 void AVLTREE<D>::viewBFS(bool order) const{
-    if(!ROOT){ std::cout<<"Tree is empty"; return; }
-    QUEUE<AVLnode<D>*> Q; 
+    if(!ROOT){ 
+        std::cout<<"NULL"; return; 
+    }
+    QUEUE<AVLnode<D>*> Q(elem); 
     AVLnode<D>* tmp;
     Q.enqueue(ROOT);
     while(!Q.empty()){
         tmp=Q.dequeue();
         if(order){
-            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
             if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
         }else{
-            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
             if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
         }
         print_Key_L_C_R(tmp); std::cout<<"\n";
     }
@@ -131,8 +204,10 @@ void AVLTREE<D>::viewBFS(bool order) const{
 
 template<typename D>
 void AVLTREE<D>::viewDFS(bool order) const{
-    if(!ROOT){ std::cout<<"Tree is empty"; return; }
-    STACK<AVLnode<D>*> S; 
+    if(!ROOT){ 
+        std::cout<<"NULL"; return; 
+    }
+    STACK<AVLnode<D>*> S(elem); 
     AVLnode<D>* tmp;
     S.push(ROOT);
     while(!S.empty()){
@@ -149,27 +224,6 @@ void AVLTREE<D>::viewDFS(bool order) const{
 }
 
 template<typename D>
-void AVLTREE<D>::viewIN(const AVLnode<D>* root) const{
-    if(!root) return;
-
-    viewIN(root->LINK[L]);  print_Key_L_C_R(root); std::cout<<"\n";  viewIN(root->LINK[R]);
-}
-
-template<typename D>
-void AVLTREE<D>::viewPRE(const AVLnode<D>* root) const{
-    if(!root) return;
-
-    print_Key_L_C_R(root); std::cout<<"\n";  viewPRE(root->LINK[L]);  viewPRE(root->LINK[R]);
-}
-
-template<typename D>
-void AVLTREE<D>::viewPOST(const AVLnode<D>* root) const{
-    if(!root) return;
-
-    viewPOST(root->LINK[L]);  viewPOST(root->LINK[R]);  print_Key_L_C_R(root); std::cout<<"\n";
-}
-
-template<typename D>
 void AVLTREE<D>::view(MODE mode) const{
     if(!ROOT){ std::cout << "NULL"; return; }
     if(mode == MODE::DEF) mode=M;
@@ -177,18 +231,13 @@ void AVLTREE<D>::view(MODE mode) const{
         case MODE::DFS: viewDFS(); break;
         case MODE::BFS: viewBFS(); break;
 
-        case MODE::IN:
-            if(ROOT) viewIN(ROOT);
-            break;
-        case MODE::PRE:
-            if(ROOT) viewPRE(ROOT);
-            break;
-        case MODE::POST:
-            if(ROOT) viewPOST(ROOT);
-            break;
+        case MODE::IN:   viewIN();   break;
+        case MODE::R_IN: viewR_IN(); break;
+        case MODE::PRE:  viewPRE();  break;
+        case MODE::POST: viewPOST(); break;
 
-        case MODE::DFS_LR: viewDFS(true); break;
-        case MODE::BFS_RL: viewBFS(true); break;
+        case MODE::DFS_RL: viewDFS(false); break;
+        case MODE::BFS_RL: viewBFS(false); break;
 
         default:
             throw std::runtime_error("Invalid traversal mode");
@@ -196,60 +245,91 @@ void AVLTREE<D>::view(MODE mode) const{
 }
 
 template<typename D>
-AVLnode<D>* AVLTREE<D>::pointerIN(AVLnode<D>* root, const unsigned long int index, 
-                                                          unsigned long int& count) const{
-    if(!root) return nullptr;
-
-    AVLnode<D>* left=pointerIN(root->LINK[L], index, count);  if(left) return left;
-    if(count == index) return root;  count++;
-    return pointerIN(root->LINK[R], index, count);
+AVLnode<D>* AVLTREE<D>::pointerIN(AVLnode<D>* root,const size_t index,size_t& count) const{
+    STACK<AVLnode<D>*> S(elem); AVLnode<D>* curr=root;
+    while(curr || !S.empty()){
+        while(curr){ 
+            S.push(curr); curr=curr->LINK[L]; 
+        }
+        curr=S.pop(); if(count==index) return curr; count++;
+        curr=curr->LINK[R];
+    }
+    return nullptr;
 }
 
 template<typename D>
-AVLnode<D>* AVLTREE<D>::pointerPRE(AVLnode<D>* root, const unsigned long int index, 
-                                                           unsigned long int& count) const{
-    if(!root) return nullptr;
-
-    if(count == index) return root;  count++;
-    AVLnode<D>* left = pointerPRE(root->LINK[L], index, count);  if(left) return left;
-    return pointerPRE(root->LINK[R], index, count);
+AVLnode<D>* AVLTREE<D>::pointerR_IN(AVLnode<D>* root,const size_t index,size_t& count) const{
+    STACK<AVLnode<D>*> S(elem); AVLnode<D>* curr=root;
+    while(curr || !S.empty()){
+        while(curr){ 
+            S.push(curr); curr=curr->LINK[R]; 
+        }
+        curr=S.pop(); if(count==index) return curr; count++;
+        curr=curr->LINK[L];
+    }
+    return nullptr;
 }
 
 template<typename D>
-AVLnode<D>* AVLTREE<D>::pointerPOST(AVLnode<D>* root, const unsigned long int index, 
-                                                            unsigned long int& count) const{
+AVLnode<D>* AVLTREE<D>::pointerPRE(AVLnode<D>* root,const size_t index,size_t& count) const{
     if(!root) return nullptr;
-
-    AVLnode<D>* left = pointerPOST(root->LINK[L], index, count);  if(left) return left;
-    AVLnode<D>* right = pointerPOST(root->LINK[R], index, count);  if(right) return right;
-    if(count == index) return root;  count++;  return nullptr;
+    AVLnode<D>* curr=root; STACK<AVLnode<D>*> S(elem);
+    do{
+        while(curr){ if(count==index) return curr; count++;
+            
+            if(curr->LINK[R]) S.push(curr->LINK[R]);
+            curr=curr->LINK[L];
+        }
+        if(!S.empty()) curr=S.pop();
+    }while(curr);
+    return nullptr;
 }
 
 template<typename D>
-AVLnode<D>* AVLTREE<D>::pointerBFS(const unsigned long int index, bool order) const{
+AVLnode<D>* AVLTREE<D>::pointerPOST(AVLnode<D>* root,const size_t index,size_t& count) const{
+    if(!root) return nullptr;
+    STACK<AVLnode<D>*> S(elem);
+    AVLnode<D>* curr=root,*last=nullptr;
+    do{
+        while(curr){
+            S.push(curr); curr=curr->LINK[L]; 
+        }
+        curr=S.tos();
+
+        if(curr->LINK[R] && last!=curr->LINK[R]) 
+            curr=curr->LINK[R];
+        else{
+            if(count==index) return curr;
+            count++; last=S.pop(); curr=nullptr;
+        }
+    } while(!S.empty()); return nullptr;
+}
+
+template<typename D>
+AVLnode<D>* AVLTREE<D>::pointerBFS(const size_t index, bool order) const{
     if(!ROOT) return nullptr;
-    unsigned long int count=0;
-    QUEUE<AVLnode<D>*> Q; Q.enqueue(ROOT);
+    size_t count=0;
+    QUEUE<AVLnode<D>*> Q(elem); Q.enqueue(ROOT);
     AVLnode<D>* tmp;
     while(!Q.empty()){
         tmp=Q.dequeue();
         if(index == count) return tmp;   count++;
         if(order){
-            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
             if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+            if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
         }else{
-            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
             if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+            if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
         }
     }
     return nullptr;
 }
 
 template<typename D>
-AVLnode<D>* AVLTREE<D>::pointerDFS(const unsigned long int index, bool order) const{
+AVLnode<D>* AVLTREE<D>::pointerDFS(const size_t index, bool order) const{
     if(!ROOT) return nullptr; 
-    unsigned long int count=0;
-    STACK<AVLnode<D>*> S; S.push(ROOT);
+    size_t count=0;
+    STACK<AVLnode<D>*> S(elem); S.push(ROOT);
     AVLnode<D>* tmp;
     while(!S.empty()){
         tmp=S.pop();
@@ -266,21 +346,22 @@ AVLnode<D>* AVLTREE<D>::pointerDFS(const unsigned long int index, bool order) co
 }
 
 template<typename D>
-AVLnode<D>* AVLTREE<D>::pointer(long int index, MODE mode) const{
-    index = index<0 ? elem+index : index;
-    if(index>=elem || index<0) return nullptr;
+AVLnode<D>* AVLTREE<D>::pointer(std::ptrdiff_t index, MODE mode) const{
+    if(index < 0) index = static_cast<std::ptrdiff_t>(elem) + index;
+    if(index<0 || static_cast<size_t>(index)>=elem) return nullptr;
 
-    unsigned long int count = 0;  if(mode == MODE::DEF) mode=M;
+    size_t count = 0;  if(mode == MODE::DEF) mode=M;
     switch(mode){
-        case MODE::DFS: return pointerDFS(index);
-        case MODE::BFS: return pointerBFS(index);
+        case MODE::DFS: return pointerDFS(static_cast<size_t>(index));
+        case MODE::BFS: return pointerBFS(static_cast<size_t>(index));
 
-        case MODE::IN:   return pointerIN(ROOT,index,count);
-        case MODE::PRE:  return pointerPRE(ROOT,index,count);
-        case MODE::POST: return pointerPOST(ROOT,index,count);
+        case MODE::IN:   return pointerIN(ROOT, static_cast<size_t>(index), count);
+        case MODE::R_IN: return pointerR_IN(ROOT, static_cast<size_t>(index), count);
+        case MODE::PRE:  return pointerPRE(ROOT, static_cast<size_t>(index), count);
+        case MODE::POST: return pointerPOST(ROOT, static_cast<size_t>(index), count);
 
-        case MODE::DFS_LR: return pointerDFS(index,true);
-        case MODE::BFS_RL: return pointerBFS(index,true);
+        case MODE::DFS_RL: return pointerDFS(static_cast<size_t>(index), false);
+        case MODE::BFS_RL: return pointerBFS(static_cast<size_t>(index), false);
 
         default:
             throw std::runtime_error("Invalid traversal mode");
@@ -288,7 +369,7 @@ AVLnode<D>* AVLTREE<D>::pointer(long int index, MODE mode) const{
 }
 
 template<typename D>  
-const D& AVLTREE<D>::operator[](const long int index) const{
+const D& AVLTREE<D>::operator[](const std::ptrdiff_t index) const{
     if(!ROOT) throw std::runtime_error("Tree is empty"); 
 
     const AVLnode<D>* ptr=pointer(index);
@@ -326,19 +407,19 @@ bool AVLTREE<D>::search(D item){
 
 template<typename D>
 AVLiterator<D> AVLTREE<D>::begin() noexcept{
-    AVLiterator<D> it(M,ROOT);  return ++it;
+    AVLiterator<D> it(M,elem,ROOT);  return ++it;
 }
 
 template<typename D>
-AVLiterator<D> AVLTREE<D>::end() noexcept{ return AVLiterator<D>(M,nullptr); }
+AVLiterator<D> AVLTREE<D>::end() noexcept{ return AVLiterator<D>(M,0,nullptr); }
 
 template<typename D>
 AVLiterator<D> AVLTREE<D>::begin() const noexcept{
-        AVLiterator<D> it(M,ROOT);  return ++it;
+        AVLiterator<D> it(M,elem,ROOT);  return ++it;
 }
 
 template<typename D>
-AVLiterator<D> AVLTREE<D>::end() const noexcept{ return AVLiterator<D>(M,nullptr); }
+AVLiterator<D> AVLTREE<D>::end() const noexcept{ return AVLiterator<D>(M,0,nullptr); }
 
 template<typename D>
 char AVLTREE<D>::subH(AVLnode<D>* sub) const noexcept{ if(!sub) return 0;   return 1+ sub->H; }
@@ -523,7 +604,7 @@ bool AVLTREE<D>::remove(D item){
 }
 
 template<typename D>
-bool AVLTREE<D>::remove_index(long int index, MODE mode){
+bool AVLTREE<D>::remove_index(std::ptrdiff_t index, MODE mode){
     if(!ROOT) return false;
     AVLnode<D>* tmp=pointer(index,mode);
     if(!tmp) throw std::out_of_range("Index out of bounds"); 
@@ -594,7 +675,8 @@ void AVLTREE<D>::insert(D item){
 //----------------------------------------------------------------------------------------- iterator
 
 template<typename D>
-AVLiterator<D>::AVLiterator(MODE mode, AVLnode<D>* p) : ptr(nullptr), last(nullptr), ROOT(p), M(mode) {
+AVLiterator<D>::AVLiterator(MODE mode, size_t capacity, AVLnode<D>* p) 
+                            : ptr(nullptr), last(nullptr), ROOT(p), M(mode), S(capacity), Q(capacity) {
     if(!ROOT) return;
 
     switch(M){
@@ -603,7 +685,7 @@ AVLiterator<D>::AVLiterator(MODE mode, AVLnode<D>* p) : ptr(nullptr), last(nullp
             Q.enqueue(ROOT); break;
 
         case MODE::DFS:
-        case MODE::DFS_LR:
+        case MODE::DFS_RL:
 
         case MODE::PRE:
             S.push(ROOT); break;
@@ -617,6 +699,15 @@ AVLiterator<D>::AVLiterator(MODE mode, AVLnode<D>* p) : ptr(nullptr), last(nullp
                 temp = temp->LINK[L];
             } break;
         }
+		
+        case MODE::R_IN:
+        {
+            AVLnode<D>* temp = ROOT;
+            while(temp){
+                S.push(temp);
+                temp = temp->LINK[R];
+            } break;
+        }
 
         default: break;
     }
@@ -625,31 +716,31 @@ AVLiterator<D>::AVLiterator(MODE mode, AVLnode<D>* p) : ptr(nullptr), last(nullp
 template <typename D>
 AVLnode<D>* AVLiterator<D>::incrementBFS(){
     if(Q.empty()) return nullptr;
-    AVLnode<D>* temp = Q.dequeue();
+    AVLnode<D>* tmp = Q.dequeue();
 
     if(M == MODE::BFS){
-        if(temp->LINK[L]) Q.enqueue(temp->LINK[L]);
-        if(temp->LINK[R]) Q.enqueue(temp->LINK[R]);
+        if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
+        if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
     }else{
-        if(temp->LINK[R]) Q.enqueue(temp->LINK[R]);
-        if(temp->LINK[L]) Q.enqueue(temp->LINK[L]);
+        if(tmp->LINK[R]) Q.enqueue(tmp->LINK[R]);
+        if(tmp->LINK[L]) Q.enqueue(tmp->LINK[L]);
     }
-    return temp;
+    return tmp;
 }
 
 template<typename D>
 AVLnode<D>* AVLiterator<D>::incrementDFS(){
     if(S.empty()) return nullptr;
-    AVLnode<D>* temp = S.pop();
+    AVLnode<D>* tmp = S.pop();
 
     if(M == MODE::DFS){
-        if(temp->LINK[L]) S.push(temp->LINK[L]);
-        if(temp->LINK[R]) S.push(temp->LINK[R]);
+        if(tmp->LINK[R]) S.push(tmp->LINK[R]);
+        if(tmp->LINK[L]) S.push(tmp->LINK[L]);
     }else{
-        if(temp->LINK[R]) S.push(temp->LINK[R]);
-        if(temp->LINK[L]) S.push(temp->LINK[L]);
+        if(tmp->LINK[L]) S.push(tmp->LINK[L]);
+        if(tmp->LINK[R]) S.push(tmp->LINK[R]);
     }
-    return temp;
+    return tmp;
 }
 
 template<typename D>
@@ -661,6 +752,19 @@ AVLnode<D>* AVLiterator<D>::incrementIN(){
     while(tmp){
         S.push(tmp);
         tmp = tmp->LINK[L];
+    }
+    return node;
+}
+
+template<typename D>
+AVLnode<D>* AVLiterator<D>::incrementR_IN(){
+    if(S.empty()) return nullptr;
+    AVLnode<D>* node = S.pop();
+
+    AVLnode<D>* tmp = node->LINK[L];
+    while(tmp){
+        S.push(tmp);
+        tmp = tmp->LINK[R];
     }
     return node;
 }
@@ -704,10 +808,11 @@ AVLnode<D>* AVLiterator<D>::increment(){
             return incrementBFS();
 
         case MODE::DFS: 
-        case MODE::DFS_LR: 
+        case MODE::DFS_RL: 
             return incrementDFS();
 
         case MODE::IN:   return incrementIN();
+        case MODE::R_IN: return incrementR_IN();
         case MODE::PRE:  return incrementPRE();
         case MODE::POST: return incrementPOST();
 
@@ -757,6 +862,7 @@ const D* AVLiterator<D>::operator->() const{
     if(!ptr) throw std::runtime_error("Null iterator");
     return &(ptr->K); 
 }
+
 
 template<typename D>
 std::ostream& operator<<(std::ostream& out, const AVLTREE<D>& AVL){  AVL.view(); return out;  }

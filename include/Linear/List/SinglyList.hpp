@@ -23,6 +23,10 @@ public:
 	
     bool operator!=(const LISTiterator& other) const noexcept;
     bool operator==(const LISTiterator& other) const noexcept;
+	bool operator<(const LISTiterator<D>& other) const noexcept;
+	bool operator<=(const LISTiterator<D>& other) const noexcept;
+	bool operator>(const LISTiterator<D>& other) const noexcept;
+	bool operator>=(const LISTiterator<D>& other) const noexcept;
 	
     D* operator->();
     const D* operator->() const;
@@ -40,16 +44,16 @@ protected:
     size_t clear(LISTnode<D>*& p);
     size_t clearupto(LISTnode<D>*& head, LISTnode<D>*& tail);
 
+    LISTnode<D>* mergeSort(LISTnode<D>* head);
+    LISTnode<D>* merge(LISTnode<D>* left, LISTnode<D>* right);
+    LISTnode<D>* middle(LISTnode<D>* head);
+
 public:
+    LIST(std::initializer_list<D> init);
     LIST();
     LIST(const LIST<D>& other);
     LIST(LIST<D>&& other) noexcept;
     ~LIST();
-
-    D& operator[](const std::ptrdiff_t index);
-    const D& operator[](const std::ptrdiff_t index) const;
-    LIST<D>& operator=(const LIST<D>& other);
-    LIST<D>& operator=(LIST<D>&& other) noexcept;
 
     size_t size() const { return elem; }
     bool insert(D val, std::ptrdiff_t index = -1);
@@ -62,6 +66,19 @@ public:
     size_t index(D value) const;
     void reverse();
     void view(bool v = false) const;
+    void sort();
+
+    D& operator[](const std::ptrdiff_t index);
+    const D& operator[](const std::ptrdiff_t index) const;
+    LIST<D>& operator=(const LIST<D>& other);
+    LIST<D>& operator=(LIST<D>&& other) noexcept;
+
+    bool operator==(const LIST<D>& other) const noexcept;
+    bool operator!=(const LIST<D>& other) const noexcept;
+    bool operator<(const LIST<D>& other) const noexcept;
+    bool operator<=(const LIST<D>& other) const noexcept;
+    bool operator>(const LIST<D>& other) const noexcept;
+    bool operator>=(const LIST<D>& other) const noexcept;
 
     LISTiterator<D> begin() noexcept;
     LISTiterator<D> end() noexcept;

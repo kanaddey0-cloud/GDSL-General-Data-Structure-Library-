@@ -110,6 +110,7 @@ protected:
     void growth(GROWTH G);
 	
 public:
+    ARRAY(std::initializer_list<D> init);
     ARRAY(size_t len=2);
     ARRAY(const ARRAY& other);
     ARRAY(ARRAY&& other) noexcept;

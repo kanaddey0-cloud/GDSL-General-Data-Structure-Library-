@@ -6,11 +6,11 @@
 
 #include <gdsl_stack>
 #include <gdsl_queue>
+#include"GDSL/include/NonLinear/Tree/Types.hpp"
 
 // #include "Linear/Stack.hpp"
 // #include "Linear/Queue/SimpleQueue.hpp"
-
-enum class NTYPE : char { LF='l', RT='r', IM='m' };
+// #include "NonLinear/Tree/Types.hpp"
 
 
 template<typename D>

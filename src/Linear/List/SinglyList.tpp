@@ -1,5 +1,11 @@
 
 template<typename D>
+LIST<D>::LIST(std::initializer_list<D> init) : LIST<D>()
+{
+    for(const D& v : init) insert(v);
+}
+
+template<typename D>
 LIST<D>::LIST(){ H=T=nullptr; elem=0; }
 
 template<typename D>
@@ -48,6 +54,45 @@ LIST<D>& LIST<D>::operator=(const LIST<D>& other){
     }
     return *this;
 }
+
+template<typename D>
+bool LIST<D>::operator==(const LIST<D>& other) const noexcept
+{
+    if(elem != other.elem) return false;
+    LISTnode<D>* a = H, *b = other.H;
+
+    while(a){
+        if(a->K != b->K) return false;
+        a=a->P; b=b->P;
+    }
+    return true;
+}
+
+template<typename D>
+bool LIST<D>::operator!=(const LIST<D>& other) const noexcept{ return !(*this == other); }
+
+template<typename D>
+bool LIST<D>::operator<(const LIST<D>& other) const noexcept
+{
+    LISTnode<D>* a = H, *b = other.H;
+    while(a && b)
+    {
+        if(a->K < b->K) return true;
+        if(a->K > b->K) return false;
+
+        a=a->P; b=b->P;
+    }
+    return elem < other.elem;
+}
+
+template<typename D>
+bool LIST<D>::operator>(const LIST<D>& other) const noexcept{ return other < *this; }
+
+template<typename D>
+bool LIST<D>::operator<=(const LIST<D>& other) const noexcept{ return !(*this > other); }
+
+template<typename D>
+bool LIST<D>::operator>=(const LIST<D>& other) const noexcept{ return !(*this < other); }
 
 template<typename D>
 bool LIST<D>::add(const LIST<D>& next){
@@ -226,6 +271,59 @@ bool LIST<D>::insert(D val, std::ptrdiff_t index){
 }
 
 template<typename D>
+void LIST<D>::sort()  // Marge Sort
+{
+    if(elem < 2) return;
+
+    H = mergeSort(H);
+    T = H;
+    while(T->P) T = T->P;
+}
+
+template<typename D>
+LISTnode<D>* LIST<D>::middle(LISTnode<D>* head)
+{
+    if(!head) return nullptr;
+
+    LISTnode<D>* slow = head, *fast = head->P;
+    while(fast && fast->P)
+    {
+        slow = slow->P; fast = fast->P->P;
+    }
+    return slow;
+}
+
+template<typename D>
+LISTnode<D>* LIST<D>::mergeSort(LISTnode<D>* head)
+{
+    if(!head || !head->P) return head;
+
+    LISTnode<D>* mid = middle(head), *right = mid->P;
+    mid->P = nullptr;
+
+    LISTnode<D>* left = mergeSort(head);
+    right = mergeSort(right);
+
+    return merge(left, right);
+}
+
+template<typename D>
+LISTnode<D>* LIST<D>::merge(LISTnode<D>* left, LISTnode<D>* right)
+{
+    if(!left) return right;
+    if(!right) return left;
+
+    if(left->K <= right->K)
+    {
+        left->P = merge(left->P, right);
+        return left;
+    }
+
+    right->P = merge(left, right->P);
+    return right;
+}
+
+template<typename D>
 void LIST<D>::view(bool v) const{
     if(!H)
         if(v) std::cout<<"Head->NULL<-Tail";
@@ -270,6 +368,9 @@ LISTiterator<D> LIST<D>::begin() const noexcept{ return LISTiterator<D>(H); }
 template<typename D>
 LISTiterator<D> LIST<D>::end() const noexcept{ return LISTiterator<D>(nullptr); }
 
+template<typename D>
+std::ostream& operator<<(std::ostream& out, const LIST<D>& l){ l.view(false); return out; }
+
 
 
 //----------------------------------------------------------------------------------------- LISTiterator
@@ -309,6 +410,18 @@ template<typename D>
 bool LISTiterator<D>::operator==(const LISTiterator<D>& other) const noexcept{ return ptr == other.ptr; }
 
 template<typename D>
+bool LISTiterator<D>::operator<(const LISTiterator<D>& other) const noexcept{ return ptr < other.ptr; }
+
+template<typename D>
+bool LISTiterator<D>::operator>(const LISTiterator<D>& other) const noexcept{ return other < *this; }
+
+template<typename D>
+bool LISTiterator<D>::operator<=(const LISTiterator<D>& other) const noexcept{ return !(*this > other); }
+
+template<typename D>
+bool LISTiterator<D>::operator>=(const LISTiterator<D>& other) const noexcept{ return !(*this < other); }
+
+template<typename D>
 D* LISTiterator<D>::operator->(){ 
     if(!ptr) throw std::runtime_error("Null LISTiterator");
     return &(ptr->K); 
@@ -319,6 +432,3 @@ const D* LISTiterator<D>::operator->() const{
     if(!ptr) throw std::runtime_error("Null LISTiterator");
     return &(ptr->K); 
 }
-
-template<typename D>
-std::ostream& operator<<(std::ostream& out, const LIST<D>& l){  l.view(false); return out;  }

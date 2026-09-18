@@ -1,5 +1,45 @@
 
 template<typename D>
+FIFO<D>::Continuous::Continuous(const Continuous& other)
+    : C(other.C), S(other.S), f(other.f), r(other.r)
+{
+    Q=new D[C];
+    for(size_t i=0; i < C; ++i) Q[i]=other.Q[i];
+}
+
+template<typename D>
+typename FIFO<D>::Continuous& 
+FIFO<D>::Continuous::operator=(const Continuous& other)
+{
+    if(this != &other){
+        D* temp=new D[other.C];
+        for(size_t i=0; i < other.C; ++i) temp[i]=other.Q[i];
+
+        delete[] Q;
+        Q=temp; C=other.C; S=other.S; f=other.f; r=other.r;
+    }
+    return *this;
+}
+
+template<typename D>
+FIFO<D>::Continuous::Continuous(Continuous&& other) noexcept
+    : Q(other.Q), C(other.C), S(other.S), f(other.f), r(other.r)
+{
+    other.Q=nullptr; other.C=0; other.S=0; other.f=0; other.r=0;
+}
+
+template<typename D>
+typename FIFO<D>::Continuous& 
+FIFO<D>::Continuous::operator=(Continuous&& other) noexcept
+{
+    if(this != &other){ delete[] Q;
+        Q=other.Q;       C=other.C; S=other.S; f=other.f; r=other.r;
+        other.Q=nullptr; other.C=0; other.S=0; other.f=0; other.r=0;
+    }
+    return *this;
+}
+
+template<typename D>
 size_t FIFO<D>::Continuous::size(){ return S; }
 
 template<typename D>

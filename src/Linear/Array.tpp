@@ -1,5 +1,58 @@
 
 template<typename D>
+void ARRAY<D>::growth(GROWTH G){
+    switch (G)
+    {
+    case GROWTH::GSRC: Gsrc++; break;
+    case GROWTH::GINS: Gins++; break;
+    case GROWTH::GDEL: Gdel++; break;
+    default: return;
+    }
+
+    size_t Limit=SIZE_MAX; 
+    if(Gsrc==Limit || Gins==Limit || Gdel==Limit)
+    {
+        Gins>>=2; Gdel>>=2; Gsrc>>=2;
+    }
+}
+
+template<typename D>
+size_t ARRAY<D>::resize(bool f){ size_t len=C;
+    if(f)
+    {
+        if(C<10){ len*=2; sd=false; }
+        else{
+            sd=false;
+            size_t T_Ops = Gins+Gdel+Gsrc;
+            float Activity = T_Ops? static_cast<float>(Gins)/T_Ops : 0.0f;
+            float Confidence = std::min(1.0f, static_cast<float>(T_Ops)/C);
+            float GrowthRate = 10.0f + (90.0f * Activity * Confidence);
+            len = C+static_cast<size_t>(C*GrowthRate / 100.0f);
+        }}
+    else
+    {
+        if(sd && S>(C/4)) sd=false;
+        else{
+            if((C>2) && (S<=C/4))
+                len = std::max<size_t>(2, C/2);
+            else return C;
+        }
+        return capacity(len);
+    }
+    Gins>>=1; Gdel>>=1; Gsrc>>=1; 
+    return capacity(len);
+}
+
+template<typename D>
+ARRAY<D>::ARRAY(std::initializer_list<D> init)
+    : C(std::max<size_t>(2, init.size())), S(init.size())
+{
+    DATA = new D[C];
+    size_t i=0;
+    for(const D& val : init) DATA[i++]=val;
+}
+
+template<typename D>
 ARRAY<D>::ARRAY(size_t len){ 
     if(len>2){
         C=len; sd=true;
@@ -67,20 +120,16 @@ ARRAY<D>& ARRAY<D>::operator=(ARRAY&& other) noexcept{
 
 template<typename D>
 bool ARRAY<D>::operator==(const ARRAY& other) const noexcept{
-    if(S != other.S)
-        return false;
+    if(S != other.S) return false;
 
     for(size_t i = 0; i < S; ++i)
-        if(DATA[i] != other.DATA[i])
-            return false;
+        if(DATA[i] != other.DATA[i]) return false;
 
     return true;
 }
 
 template<typename D>
-bool ARRAY<D>::operator!=(const ARRAY& other) const noexcept{
-    return !(*this == other);
-}
+bool ARRAY<D>::operator!=(const ARRAY& other) const noexcept{ return !(*this == other); }
 
 template<typename D>
 bool ARRAY<D>::operator<(const ARRAY& other) const noexcept{
@@ -94,39 +143,16 @@ bool ARRAY<D>::operator<(const ARRAY& other) const noexcept{
 }
 
 template<typename D>
-bool ARRAY<D>::operator<=(const ARRAY& other) const noexcept{
-    return !(*this > other);
-}
+bool ARRAY<D>::operator<=(const ARRAY& other) const noexcept{ return !(*this > other); }
 
 template<typename D>
-bool ARRAY<D>::operator>(const ARRAY& other) const noexcept{
-    return other < *this;
-}
+bool ARRAY<D>::operator>(const ARRAY& other) const noexcept{ return other < *this; }
 
 template<typename D>
-bool ARRAY<D>::operator>=(const ARRAY& other) const noexcept{
-    return !(*this < other);
-}
+bool ARRAY<D>::operator>=(const ARRAY& other) const noexcept{ return !(*this < other); }
 
 template<typename D>
 size_t ARRAY<D>::size() const noexcept{ return S; }
-
-template<typename D>
-void ARRAY<D>::growth(GROWTH G){
-    switch (G)
-    {
-    case GROWTH::GSRC: Gsrc++; break;
-    case GROWTH::GINS: Gins++; break;
-    case GROWTH::GDEL: Gdel++; break;
-    default: return;
-    }
-
-    size_t Limit=SIZE_MAX; 
-    if(Gsrc==Limit || Gins==Limit || Gdel==Limit)
-    {
-        Gins>>=2; Gdel>>=2; Gsrc>>=2;
-    }
-}
 
 template<typename D>
 size_t ARRAY<D>::capacity(size_t len) noexcept{
@@ -143,33 +169,6 @@ size_t ARRAY<D>::capacity(size_t len) noexcept{
         return C; 
     }
     return C;
-}
-
-template<typename D>
-size_t ARRAY<D>::resize(bool f){ size_t len=C;
-    if(f)
-    {
-        if(C<10){ len*=2; sd=false; }
-        else{
-            sd=false;
-            size_t T_Ops = Gins+Gdel+Gsrc;
-            float Activity = T_Ops? static_cast<float>(Gins)/T_Ops : 0.0f;
-            float Confidence = std::min(1.0f, static_cast<float>(T_Ops)/C);
-            float GrowthRate = 10.0f + (90.0f * Activity * Confidence);
-            len = C+static_cast<size_t>(C*GrowthRate / 100.0f);
-        }}
-    else
-    {
-        if(sd && S>(C/4)) sd=false;
-        else{
-            if((C>2) && (S<=C/4))
-                len = std::max<size_t>(2, C/2);
-            else return C;
-        }
-        return capacity(len);
-    }
-    Gins>>=1; Gdel>>=1; Gsrc>>=1; 
-    return capacity(len);
 }
 
 template<typename D>
@@ -1508,6 +1507,9 @@ void ARRAY<D>::bitonicMerge(size_t low, size_t count, bool ascend)
 
     bitonicMerge(low+mid, count-mid, ascend);
 }
+
+template<typename D>
+std::ostream& operator<<(std::ostream& out, const ARRAY<D>& a){ a.view(); return out; }
 
 
 

@@ -34,7 +34,8 @@ union LIFO
 
         Continuous(Continuous&&) noexcept = default;
         Continuous& operator=(Continuous&&) noexcept = default;
-    } array;
+    } 
+	array;
 
     struct Linked { friend class STACK<D>;
     protected:
@@ -55,7 +56,8 @@ union LIFO
 
         Linked(Linked&&) noexcept = default;
         Linked& operator=(Linked&&) noexcept = default;
-    } list;
+    } 
+	list;
 
     LIFO() {}
     ~LIFO() {}
