@@ -1,3 +1,30 @@
+# GDSL C API – Development Reference
+
+**Status:** Under Development
+```cpp
+GDSL/
+│
+│── include/          C++ public headers
+│── src/              C++ template implementations
+│── bin/              Compiled DLL
+│── lib/              Import library
+│
+└── c_api/
+    │── include/      Public C API headers
+    │── src/          C API implementation files
+    └── INTERFACE.md  C API architecture and build reference
+```
+This document records the planned C API architecture,
+header relationships, implementation structure, and
+build commands for future development.
+
+The examples and commands serve as development references
+and are not necessarily production-ready.
+
+______________________________________________
+==============================================
+
+```cpp
 GDSL/
 │
 ├── include/
@@ -58,9 +85,9 @@ GDSL/
         ├── gdsl_btree.cpp
         ├── gdsl_bst.cpp
         └── gdsl_avl.cpp
-
+```
 __________________________________________________________
-
+```cpp
 g++ -DGDSL_BUILD_DLL -shared \
 c_api/src/*.cpp \
 -o gdsl.dll \
@@ -74,8 +101,9 @@ c_api/src/*.cpp \
 GDSL
 └── bin/
         └── gdsl.dll
+```
 __________________________________________________________
-
+```cpp
 g++ -shared -o gdsl.dll c_api/src/*.cpp \
 -Wl,--out-implib,libgdsl.a \
 -I . \
@@ -89,8 +117,9 @@ g++ -shared -o gdsl.dll c_api/src/*.cpp \
 GDSL
 └── lib/
         └── libgdsl.a
-__________________________________________________________
-
+```
+==============================================
+```cpp
 include/
 └── Linear/
     └── List/
@@ -107,8 +136,9 @@ include/
 #include "src/Linear/List/SinglyList.tpp"
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/include/
 └── gdsl_list.h
 
@@ -128,8 +158,9 @@ extern "C" {
 #endif
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/src/
 └── gdsl_list.cpp
 #include "gdsl_list.h"
@@ -138,8 +169,9 @@ c_api/src/
 #include <new>
 
 // Code
-__________________________________________________________
-
+```
+==============================================
+```cpp
 include/
 └── Linear/
     └── Stack.hpp
@@ -155,8 +187,9 @@ include/
 #include "src/Linear/Stack.tpp"
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/include/
 └── gdsl_stack.h
 
@@ -176,8 +209,9 @@ extern "C" {
 #endif
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/src/
 └── gdsl_stack.cpp
 
@@ -185,8 +219,9 @@ c_api/src/
 #include "Linear/Stack.hpp"
 
 // Code
-__________________________________________________________
-
+```
+==============================================
+```cpp
 include/
 └── Linear/
     └── Queue/
@@ -203,8 +238,9 @@ include/
 #include "src/Linear/Queue/SimpleQueue.tpp"
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/include/
 └── gdsl_queue.h
 
@@ -224,8 +260,9 @@ extern "C" {
 #endif
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/src/
 └── gdsl_queue.cpp
 
@@ -233,8 +270,9 @@ c_api/src/
 #include "Linear/Queue/SimpleQueue.hpp"
 
 // Code
-__________________________________________________________
-
+```
+==============================================
+```cpp
 include/
 └── NonLinear/
     └── Tree/
@@ -253,8 +291,9 @@ include/
 #include "src/NonLinear/Tree/BalancedTree.tpp"
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/include/
 └── gdsl_btree.h
 
@@ -274,8 +313,9 @@ extern "C" {
 #endif
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/src/
 └── gdsl_btree.cpp
 
@@ -283,8 +323,9 @@ c_api/src/
 #include "NonLinear/Tree/BalancedTree.hpp"
 
 // Code
-__________________________________________________________
-
+```
+==============================================
+```cpp
 include/
 └── NonLinear/
     └── Tree/
@@ -304,8 +345,9 @@ include/
 #include "src/NonLinear/Tree/BinarySearchTree.tpp"
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/include/
 └── gdsl_bst.h
 
@@ -326,8 +368,9 @@ extern "C" {
 #endif
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/src/
 └── gdsl_bst.cpp
 
@@ -335,8 +378,9 @@ c_api/src/
 #include "NonLinear/Tree/BinarySearchTree.hpp"
 
 // Code
-__________________________________________________________
-
+```
+==============================================
+```cpp
 include/
 └── NonLinear/
     └── Tree/
@@ -356,8 +400,9 @@ include/
 #include "src/NonLinear/Tree/AdelsonVelskyLandisTree.tpp"
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/include/
 └── gdsl_avl.h
 
@@ -378,8 +423,9 @@ extern "C" {
 #endif
 
 #endif
+```
 ---------------------------------
-
+```cpp
 c_api/src/
 └── gdsl_avl.cpp
 
@@ -387,4 +433,4 @@ c_api/src/
 #include "NonLinear/Tree/AdelsonVelskyLandisTree.hpp"
 
 // Code
-
+```
